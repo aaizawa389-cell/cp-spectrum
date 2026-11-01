@@ -147,4 +147,4 @@ if(ios){
 }
 document.getElementById('guides').addEventListener('click',()=>{const key=vertical?'vertical':'horizontal';guideSettings[key]=!guideSettings[key];try{localStorage.setItem('cp-guides-'+key,String(guideSettings[key]));}catch(e){}render();});document.getElementById('mode').addEventListener('click',()=>{vertical=!vertical;try{localStorage.setItem('cp-scale-mode',vertical?'vertical':'horizontal');}catch(e){}render();});document.getElementById('add').addEventListener('click',addCharacter);document.getElementById('export').addEventListener('click',exportPNG);document.getElementById('clear').addEventListener('click',()=>{if(confirm('确定清空所有角色吗？')){characters=[];save();render();}});window.addEventListener('resize',render);tickRender();render();
 })();
-</script><img src="https://visitor-badge.one9x.com/badge?page_id=aaizawa389-cell.cp-spectrum.spectrum&unique=true&timeframe=86400" alt="" aria-hidden="true" width="1" height="1" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" referrerpolicy="no-referrer"></body></html>
+</script></body></html>
