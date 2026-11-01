@@ -11,7 +11,8 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),W=1000,BASE_H=720,KEY='relationship-canvas-v1',palette=['#222222'];
 let state={nodes:[],edges:[]},mode='move',pending=null,selectedNode=null,selectedEdge=null,history=[],future=[],dragging=false;
-const canvasH=()=>BASE_H+Math.max(0,state.nodes.length-3)*260;
+const canvasH=()=>state.nodes.length>=8?1000:BASE_H+Math.max(0,state.nodes.length-3)*65;
+function arrangeLargeGroup(){const ns=state.nodes;if(ns.length<10)return;const n=ns.length,r=n>=16?365:340;ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=500+r*Math.cos(a);p.y=500+r*Math.sin(a);});}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.nodes)&&Array.isArray(saved.edges))state=saved;}catch(e){}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));$('status').textContent='已自动保存';}catch(e){$('status').textContent='浏览器存储不足，请导出项目备份';}}
@@ -98,7 +99,7 @@ function drag(el,onMove,nodeDrag=false,onTap=null){
   window.addEventListener('pointercancel',end);
  });
 }
-function add(){if(state.nodes.length>=18){alert('最多添加 18 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();if(newH>oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
+function add(){if(state.nodes.length>=18){alert('最多添加 18 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
 $('add').onclick=add;$('fillEdges').onclick=()=>{const missing=state.nodes.length*(state.nodes.length-1)-state.edges.length;if(missing<=0){alert('所有双向箭头都已经存在。');return;}snapshot();addMissingPairs();commit();};$('move').onclick=()=>{mode='move';pending=null;render();};$('connect').onclick=()=>{mode='connect';pending=null;render();};$('ring').onclick=()=>layout('ring');$('star').onclick=()=>layout('star');
 $('nodeName').oninput=()=>{const n=nodeBy(selectedNode);if(n){n.name=$('nodeName').value;persist();const el=[...$('nodes').children].find(x=>x.classList.contains('selected'));if(el){el.querySelector('.nm').textContent=n.name;if(!n.image)el.querySelector('.avatar').textContent=n.name.slice(0,1);}}};
 $('nodeName').onfocus=()=>snapshot();
@@ -152,6 +153,7 @@ for(const n of (exportNodes||state.nodes)){ctx.fillStyle='#f2eaf0';ctx.beginPath
 ctx.restore();exportNodes=null;ctx.fillStyle='rgba(80,80,80,.65)';ctx.textAlign='right';ctx.font='12px sans-serif';ctx.fillText('制表人：aizawa',outW-12,17);
 const blob=await new Promise((ok,bad)=>canvas.toBlob(b=>b?ok(b):bad(Error('图片生成失败')),'image/png'));const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);if(ios){const url=URL.createObjectURL(blob);$('previewImg').src=url;$('preview').classList.remove('hidden');}else download(blob,'CP-CB-关系图.png');
 }catch(err){alert('导出失败：'+err.message);}finally{exportNodes=null;btn.disabled=false;btn.textContent='导出 PNG';}};
+if(state.nodes.length>=10&&state.nodes.some(n=>n.y>1000||n.y<0||n.x>1000||n.x<0)){arrangeLargeGroup();persist();}
 if(!state.nodes.length){for(let i=0;i<3;i++){const a=-Math.PI/2+2*Math.PI*i/3;state.nodes.push({id:uid(),name:['A','B','C'][i],x:500+290*Math.cos(a),y:360+240*Math.sin(a),image:''});}addMissingPairs();persist();}
 render();
 })();
