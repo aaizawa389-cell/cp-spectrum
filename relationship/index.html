@@ -121,11 +121,17 @@ function wrap(ctx,text,x,y,maxWidth,lineHeight=17){const lines=String(text||'').
 $('png').onclick=async()=>{const btn=$('png');btn.disabled=true;btn.textContent='正在生成…';try{const scale=2,canvas=document.createElement('canvas');
 // Only reflow positions for PNG; the editable layout and saved coordinates stay unchanged.
 const source=state.nodes;
-if(source.length>1){
+if(source.length>=10){
+ // Large groups: export as a compact circular arrangement, without modifying the editable project.
+ const cx=500,cy=500,radius=source.length>=16?365:340;
+ const avgX=source.reduce((sum,n)=>sum+n.x,0)/source.length;
+ const avgY=source.reduce((sum,n)=>sum+n.y,0)/source.length;
+ const ordered=[...source].sort((a,b)=>Math.atan2(a.y-avgY,a.x-avgX)-Math.atan2(b.y-avgY,b.x-avgX));
+ exportNodes=ordered.map((n,i)=>{const angle=-Math.PI/2+2*Math.PI*i/ordered.length;return {...n,x:cx+radius*Math.cos(angle),y:cy+radius*Math.sin(angle)};});
+}else if(source.length>1){
  const xs=source.map(n=>n.x),ys=source.map(n=>n.y);
  const minNX=Math.min(...xs),maxNX=Math.max(...xs),minNY=Math.min(...ys),maxNY=Math.max(...ys);
  const spanX=Math.max(1,maxNX-minNX),spanY=Math.max(1,maxNY-minNY);
- // Bring tall layouts closer to a square without distorting circular avatars.
  const targetSpan=Math.max(420,Math.min(850,Math.max(spanX,spanY)*.78));
  const sx=Math.min(1.55,targetSpan/spanX),sy=Math.min(1,Math.max(.38,targetSpan/spanY));
  const cx=(minNX+maxNX)/2,cy=(minNY+maxNY)/2;
@@ -137,7 +143,7 @@ const include=(x,y,p=0)=>{minX=Math.min(minX,x-p);minY=Math.min(minY,y-p);maxX=M
 for(const n of (exportNodes||state.nodes)){include(n.x,n.y-10,55);include(n.x,n.y+43,18);}
 for(const e of state.edges){const g=geom(e);if(!g)continue;include(g.start.x,g.start.y,15);include(g.end.x,g.end.y,15);include(g.ctrl.x,g.ctrl.y,Math.abs(g.offset)*0+8);if(e.text)include(g.label.x+(e.tx||0),g.label.y+(e.ty||0),88);}
 if(!Number.isFinite(minX)){minX=0;minY=0;maxX=640;maxY=400;}
-const margin=45,left=minX-margin,top=minY-margin,outW=Math.max(220,Math.ceil(maxX-minX+2*margin)),outH=Math.max(180,Math.ceil(maxY-minY+2*margin));
+const margin=45;let left=minX-margin,top=minY-margin,outW=Math.max(220,Math.ceil(maxX-minX+2*margin)),outH=Math.max(180,Math.ceil(maxY-minY+2*margin));if(source.length>=10){const side=Math.max(outW,outH);left-=(side-outW)/2;top-=(side-outH)/2;outW=side;outH=side;}
 canvas.width=outW*scale;canvas.height=outH*scale;
 const ctx=canvas.getContext('2d');ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH);ctx.save();ctx.translate(-left,-top);
 for(const e of state.edges){const g=geom(e);if(!g)continue;ctx.strokeStyle=e.color||'#222222';ctx.lineWidth=2.5;ctx.setLineDash(e.dash==='dash'?[7,6]:[]);ctx.beginPath();ctx.moveTo(g.start.x,g.start.y);ctx.quadraticCurveTo(g.ctrl.x,g.ctrl.y,g.end.x,g.end.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(g.end.x-12*Math.cos(g.ang-.48),g.end.y-12*Math.sin(g.ang-.48));ctx.lineTo(g.end.x,g.end.y);ctx.lineTo(g.end.x-12*Math.cos(g.ang+.48),g.end.y-12*Math.sin(g.ang+.48));ctx.stroke();
