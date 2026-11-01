@@ -9,10 +9,11 @@
 <div class="help">3–5 人自动生成双向黑色箭头；第 6 人起新增角色不再自动连线，可使用手动连线。点击头像直接上传照片；点击角色名字可修改名称。点击箭头旁的文字填写感情，不需要的箭头可选中删除。</div><div class="help" style="margin-top:16px"><strong>保存项目，方便下次继续编辑 ♡</strong><p style="margin:7px 0 0">如果角色较多，或之后还想调整关系，除了导出 PNG 图片，也可以点击「保存项目」备份当前内容。下次使用时选择「导入项目」，就能继续修改，不必从头制作。</p></div><footer>制表人：aizawa · 本工具不会上传你的角色照片</footer></main><div id="preview" class="hidden"><button id="closePreview">关闭预览 ×</button><p>长按图片即可保存到照片（iPhone / iPad）</p><img id="previewImg" alt="导出的关系图"></div>
 <script>
 (()=>{'use strict';
-const $=id=>document.getElementById(id),W=1000,BASE_H=720,KEY='relationship-canvas-v1',palette=['#222222'];
+const $=id=>document.getElementById(id);let W=1000;const BASE_H=720,KEY='relationship-canvas-v1',palette=['#222222'];
 let state={nodes:[],edges:[]},mode='move',pending=null,selectedNode=null,selectedEdge=null,history=[],future=[],dragging=false;
-const canvasH=()=>state.nodes.length>=8?1000:BASE_H+Math.max(0,state.nodes.length-3)*65;
-function compactPosition(i,n){if(n>18){const outer=Math.ceil(n*.6),count=i<outer?outer:n-outer,j=i<outer?i:i-outer,r=i<outer?365:245,a=-Math.PI/2+2*Math.PI*(j+(i<outer?0:.5))/count;return {x:500+r*Math.cos(a),y:500+r*Math.sin(a)};}const a=-Math.PI/2+2*Math.PI*i/n,r=n>=16?365:340;return {x:500+r*Math.cos(a),y:500+r*Math.sin(a)};}
+const canvasSize=()=>state.nodes.length>18?1000+(state.nodes.length-18)*45:1000;
+const canvasH=()=>state.nodes.length>=8?canvasSize():BASE_H+Math.max(0,state.nodes.length-3)*65;
+function compactPosition(i,n){if(n>18){const outer=Math.ceil(n*.6),count=i<outer?outer:n-outer,j=i<outer?i:i-outer,r=i<outer?365+(n-18)*20:245+(n-18)*12,a=-Math.PI/2+2*Math.PI*(j+(i<outer?0:.5))/count;return {x:canvasSize()/2+r*Math.cos(a),y:canvasSize()/2+r*Math.sin(a)};}const a=-Math.PI/2+2*Math.PI*i/n,r=n>=16?365:340;return {x:500+r*Math.cos(a),y:500+r*Math.sin(a)};}
 function arrangeLargeGroup(){const ns=state.nodes;if(ns.length<10)return;ns.forEach((p,i)=>Object.assign(p,compactPosition(i,ns.length)));}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.nodes)&&Array.isArray(saved.edges))state=saved;}catch(e){}
@@ -30,7 +31,7 @@ function addMissingPairs(){
  }
  return count;
 }
-function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-320;others[0].y=cy;others[1].x=cx+320;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=cx+385*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});commit();}
+function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-320;others[0].y=cy;others[1].x=cx+320;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=cx+385*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});commit();}
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
 const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
@@ -53,7 +54,7 @@ const label={x:mid.x+nx*labelSide*38,y:mid.y+ny*labelSide*38};
 return {start,end,ctrl,mid,label,ang,textAngle,offset,nx,ny};}
 function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
 function render(){
-const H=canvasH();$('board').style.aspectRatio='1000 / '+H;$('svg').setAttribute('viewBox','0 0 1000 '+H);
+W=canvasSize();const H=canvasH();$('board').style.aspectRatio=W+' / '+H;$('svg').setAttribute('viewBox','0 0 '+W+' '+H);$('board').style.minWidth=state.nodes.length>18?'700px':'';$('viewport').style.overflow=state.nodes.length>18?'auto':'hidden';
 $('move').classList.toggle('active',mode==='move');$('connect').classList.toggle('active',mode==='connect');$('connect').textContent=pending?'选择终点角色…':'↗ 添加箭头';
 $('nodePanel').classList.toggle('hidden',!selectedNode);$('edgePanel').classList.toggle('hidden',!selectedEdge);
 const n=nodeBy(selectedNode),e=edgeBy(selectedEdge);if(!n)selectedNode=null;if(!e)selectedEdge=null;
@@ -100,7 +101,7 @@ function drag(el,onMove,nodeDrag=false,onTap=null){
   window.addEventListener('pointercancel',end);
  });
 }
-function add(){if(state.nodes.length>=30){alert('最多添加 30 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
+function add(){if(state.nodes.length>=30){alert('最多添加 30 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();W=canvasSize();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
 $('add').onclick=add;$('fillEdges').onclick=()=>{const missing=state.nodes.length*(state.nodes.length-1)-state.edges.length;if(missing<=0){alert('所有双向箭头都已经存在。');return;}snapshot();addMissingPairs();commit();};$('clearEdges').onclick=()=>{if(!state.edges.length)return;if(!confirm('确定删除图上所有箭头和关系文字吗？角色和头像会保留。'))return;snapshot();state.edges=[];selectedEdge=null;pending=null;mode='move';commit();};$('move').onclick=()=>{mode='move';pending=null;render();};$('connect').onclick=()=>{mode='connect';pending=null;render();};$('ring').onclick=()=>layout('ring');$('star').onclick=()=>layout('star');
 $('nodeName').oninput=()=>{const n=nodeBy(selectedNode);if(n){n.name=$('nodeName').value;persist();const el=[...$('nodes').children].find(x=>x.classList.contains('selected'));if(el){el.querySelector('.nm').textContent=n.name;if(!n.image)el.querySelector('.avatar').textContent=n.name.slice(0,1);}}};
 $('nodeName').onfocus=()=>snapshot();
@@ -154,7 +155,7 @@ for(const n of (exportNodes||state.nodes)){ctx.fillStyle='#f2eaf0';ctx.beginPath
 ctx.restore();exportNodes=null;ctx.fillStyle='rgba(80,80,80,.65)';ctx.textAlign='right';ctx.font='12px sans-serif';ctx.fillText('制表人：aizawa',outW-12,17);
 const blob=await new Promise((ok,bad)=>canvas.toBlob(b=>b?ok(b):bad(Error('图片生成失败')),'image/png'));const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);if(ios){const url=URL.createObjectURL(blob);$('previewImg').src=url;$('preview').classList.remove('hidden');}else download(blob,'CP-CB-关系图.png');
 }catch(err){alert('导出失败：'+err.message);}finally{exportNodes=null;btn.disabled=false;btn.textContent='导出 PNG';}};
-if(state.nodes.length>=10&&state.nodes.some(n=>n.y>1000||n.y<0||n.x>1000||n.x<0)){arrangeLargeGroup();persist();}
+if(state.nodes.length>=10&&state.nodes.some(n=>n.y>canvasH()||n.y<0||n.x>canvasSize()||n.x<0)){arrangeLargeGroup();persist();}
 if(!state.nodes.length){for(let i=0;i<3;i++){const a=-Math.PI/2+2*Math.PI*i/3;state.nodes.push({id:uid(),name:['A','B','C'][i],x:500+290*Math.cos(a),y:360+240*Math.sin(a),image:''});}addMissingPairs();persist();}
 render();
 })();
