@@ -24,7 +24,7 @@ function save(){try{localStorage.setItem(STORAGE,JSON.stringify(characters));}ca
 function tickRender(){const holder=document.getElementById('ticks');holder.replaceChildren();for(let i=0;i<=10;i++){const t=document.createElement('div');t.className='tick';if(vertical){t.style.top=(55+(1-i/10)*(stage.clientHeight-120))+'px';}else{t.style.left=xPct(i/10)+'%';}t.textContent=(i/10).toFixed(1);holder.append(t);}}
 function layout(width){
  if(vertical){
-  const height=characters.length<=3?350:350+(characters.length-3)*85;
+  const height=Math.max(800,180+characters.length*105);
   const top=55,bottom=height-65;let axisX=width*.23;
   const ordered=[...characters].sort((a,b)=>b.score-a.score||String(a.id).localeCompare(String(b.id)));
   const lanes=[],items=[];
@@ -48,7 +48,7 @@ function layout(width){
 function render(){
  stage.classList.toggle('vertical',vertical);
  document.getElementById('mode').textContent=vertical?'↔ 切换横向':'↕ 切换纵向';const guidesButton=document.getElementById('guides');guidesButton.textContent=showGuides()?'隐藏辅助线':'显示辅助线';guidesButton.setAttribute('aria-pressed',String(showGuides()));
- stage.style.width=vertical?'520px':'100%';const width=vertical?520:stage.clientWidth,plan=layout(width);stage.style.width=vertical?plan.width+'px':'100%';stage.style.height=plan.height+'px';
+ stage.style.width=vertical?'760px':'100%';const width=vertical?760:stage.clientWidth,plan=layout(width);stage.style.width=vertical?plan.width+'px':'100%';stage.style.height=plan.height+'px';
  tickRender();layer.replaceChildren();svg.setAttribute('viewBox',`0 0 ${width} ${plan.height}`);svg.replaceChildren();
  const ns='http://www.w3.org/2000/svg';
  for(const item of plan.items){
@@ -91,7 +91,7 @@ if(ios){
 btn.disabled=true;btn.textContent='正在生成 PNG…';
 try {
 
-const plan=layout(vertical?520:760),width=plan.width,height=plan.height,canvas=document.createElement('canvas');
+const plan=layout(vertical?760:760),width=plan.width,height=plan.height,canvas=document.createElement('canvas');
 canvas.width=width;canvas.height=height;
 const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
 ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.textAlign='center';ctx.font='16px sans-serif';
