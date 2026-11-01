@@ -12,7 +12,8 @@
 const $=id=>document.getElementById(id),W=1000,BASE_H=720,KEY='relationship-canvas-v1',palette=['#222222'];
 let state={nodes:[],edges:[]},mode='move',pending=null,selectedNode=null,selectedEdge=null,history=[],future=[],dragging=false;
 const canvasH=()=>state.nodes.length>=8?1000:BASE_H+Math.max(0,state.nodes.length-3)*65;
-function arrangeLargeGroup(){const ns=state.nodes;if(ns.length<10)return;const n=ns.length,r=n>=16?365:340;ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=500+r*Math.cos(a);p.y=500+r*Math.sin(a);});}
+function compactPosition(i,n){if(n>18){const outer=Math.ceil(n*.6),count=i<outer?outer:n-outer,j=i<outer?i:i-outer,r=i<outer?365:245,a=-Math.PI/2+2*Math.PI*(j+(i<outer?0:.5))/count;return {x:500+r*Math.cos(a),y:500+r*Math.sin(a)};}const a=-Math.PI/2+2*Math.PI*i/n,r=n>=16?365:340;return {x:500+r*Math.cos(a),y:500+r*Math.sin(a)};}
+function arrangeLargeGroup(){const ns=state.nodes;if(ns.length<10)return;ns.forEach((p,i)=>Object.assign(p,compactPosition(i,ns.length)));}
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.nodes)&&Array.isArray(saved.edges))state=saved;}catch(e){}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));$('status').textContent='已自动保存';}catch(e){$('status').textContent='浏览器存储不足，请导出项目备份';}}
@@ -29,7 +30,7 @@ function addMissingPairs(){
  }
  return count;
 }
-function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-320;others[0].y=cy;others[1].x=cx+320;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=cx+385*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});commit();}
+function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-320;others[0].y=cy;others[1].x=cx+320;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=cx+385*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});commit();}
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
 const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
@@ -99,7 +100,7 @@ function drag(el,onMove,nodeDrag=false,onTap=null){
   window.addEventListener('pointercancel',end);
  });
 }
-function add(){if(state.nodes.length>=18){alert('最多添加 18 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
+function add(){if(state.nodes.length>=30){alert('最多添加 30 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();}
 $('add').onclick=add;$('fillEdges').onclick=()=>{const missing=state.nodes.length*(state.nodes.length-1)-state.edges.length;if(missing<=0){alert('所有双向箭头都已经存在。');return;}snapshot();addMissingPairs();commit();};$('move').onclick=()=>{mode='move';pending=null;render();};$('connect').onclick=()=>{mode='connect';pending=null;render();};$('ring').onclick=()=>layout('ring');$('star').onclick=()=>layout('star');
 $('nodeName').oninput=()=>{const n=nodeBy(selectedNode);if(n){n.name=$('nodeName').value;persist();const el=[...$('nodes').children].find(x=>x.classList.contains('selected'));if(el){el.querySelector('.nm').textContent=n.name;if(!n.image)el.querySelector('.avatar').textContent=n.name.slice(0,1);}}};
 $('nodeName').onfocus=()=>snapshot();
@@ -115,7 +116,7 @@ $('undo').onclick=()=>{if(!history.length)return;future.push(JSON.stringify(stat
 $('redo').onclick=()=>{if(!future.length)return;history.push(JSON.stringify(state));state=JSON.parse(future.pop());selectedEdge=null;selectedNode=null;commit();};
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 $('save').onclick=()=>download(new Blob([JSON.stringify({version:1,...state},null,2)],{type:'application/json'}),'CP-CB-关系图项目.json');
-$('load').onclick=()=>$('fileImport').click();$('fileImport').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.nodes)||!Array.isArray(obj.edges)||obj.nodes.length>18)throw Error('项目格式无效或人数超过18人');snapshot();state={nodes:obj.nodes,edges:obj.edges};selectedEdge=null;selectedNode=null;commit();}catch(e){alert('导入失败：'+e.message);}ev.target.value='';};
+$('load').onclick=()=>$('fileImport').click();$('fileImport').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.nodes)||!Array.isArray(obj.edges)||obj.nodes.length>30)throw Error('项目格式无效或人数超过30人');snapshot();state={nodes:obj.nodes,edges:obj.edges};selectedEdge=null;selectedNode=null;commit();}catch(e){alert('导入失败：'+e.message);}ev.target.value='';};
 $('reset').onclick=()=>{if(!confirm('确定清空整张关系图吗？'))return;snapshot();state={nodes:[],edges:[]};selectedEdge=null;selectedNode=null;commit();};
 $('closePreview').onclick=()=>$('preview').classList.add('hidden');
 function wrap(ctx,text,x,y,maxWidth,lineHeight=17){const lines=String(text||'').split('\n');let yy=y;ctx.textAlign='center';for(const line of lines){let segment='';for(const char of line){if(ctx.measureText(segment+char).width>maxWidth&&segment){ctx.fillText(segment,x,yy);yy+=lineHeight;segment=char;}else segment+=char;}ctx.fillText(segment,x,yy);yy+=lineHeight;} }
@@ -124,11 +125,11 @@ $('png').onclick=async()=>{const btn=$('png');btn.disabled=true;btn.textContent=
 const source=state.nodes;
 if(source.length>=10){
  // Large groups: export as a compact circular arrangement, without modifying the editable project.
- const cx=500,cy=500,radius=source.length>=16?365:340;
+ 
  const avgX=source.reduce((sum,n)=>sum+n.x,0)/source.length;
  const avgY=source.reduce((sum,n)=>sum+n.y,0)/source.length;
  const ordered=[...source].sort((a,b)=>Math.atan2(a.y-avgY,a.x-avgX)-Math.atan2(b.y-avgY,b.x-avgX));
- exportNodes=ordered.map((n,i)=>{const angle=-Math.PI/2+2*Math.PI*i/ordered.length;return {...n,x:cx+radius*Math.cos(angle),y:cy+radius*Math.sin(angle)};});
+ exportNodes=ordered.map((n,i)=>{return {...n,...compactPosition(i,ordered.length)};});
 }else if(source.length>1){
  const xs=source.map(n=>n.x),ys=source.map(n=>n.y);
  const minNX=Math.min(...xs),maxNX=Math.max(...xs),minNY=Math.min(...ys),maxNY=Math.max(...ys);
