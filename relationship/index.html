@@ -3,7 +3,7 @@
 </style></head><body><main><a href="../tools/" style="display:inline-block;margin-bottom:12px;padding:8px 13px;border:1px solid #ead4dc;border-radius:30px;background:#fff9f9;color:#926d80;text-decoration:none;font-size:13px;font-weight:500">← aizawa's tools · 工具合集</a><h1>♡ Relationship Canvas</h1><div class="sub">多人关系性生成器，也可以当作普通的 CP 连线图，大家自由发挥～</div>
 <div class="bar"><button id="add">＋ 添加角色</button><button id="move" class="active">✋ 移动角色</button><button id="connect">↗ 手动连线</button><button id="fillEdges">补齐双向箭头</button><button id="clearEdges">清除所有箭头</button><button id="ring">◯ 环形布局</button><button id="star">✳ 中心辐射</button><button id="undo" title="撤销" aria-label="撤销">↶</button><button id="redo" title="重做" aria-label="重做">↷</button></div>
 <div class="bar"><button id="batchImages">批量导入头像</button><input type="file" id="batchImageFiles" accept="image/*" multiple style="display:none"><button id="save">保存项目</button><button id="load">导入项目</button><input type="file" id="fileImport" accept=".json,application/json"><button id="png">导出 PNG</button><button id="reset">清空画布</button><span class="muted" id="status">自动保存在当前浏览器</span></div>
-<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option></select></label><button id="reverse">反向复制</button><button id="deleteEdge">删除箭头</button></div>
+<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option></select></label><button id="reverse">反向复制</button><button id="snapLabel">文字贴近箭头</button><button id="deleteEdge">删除箭头</button></div>
 <div id="nodePanel" class="panel hidden"><span class="pill" id="nodeTitle"></span><label>名字 <input id="nodeName" type="text" maxlength="40"></label><label>照片 <input id="nodeImage" type="file" accept="image/*"></label><button id="deleteNode">删除角色</button></div>
 <div class="wrap" id="viewport"><div class="board" id="board"><svg class="edges" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="none"></svg><div id="nodes"></div><div id="notes"></div><div id="handles"></div></div></div>
 <div class="help">3–5 人自动生成双向黑色箭头；第 6 人起新增角色不再自动连线，可使用手动连线。点击头像直接上传照片；点击角色名字可修改名称。点击箭头旁的文字填写感情，不需要的箭头可选中删除。</div><div class="help" style="margin-top:16px"><strong>保存项目，方便下次继续编辑 ♡</strong><p style="margin:7px 0 0">如果角色较多，或之后还想调整关系，除了导出 PNG 图片，也可以点击「保存项目」备份当前内容。下次使用时选择「导入项目」，就能继续修改，不必从头制作。</p></div><footer>制表人：aizawa · 本工具不会上传你的角色照片</footer></main><div id="preview" class="hidden"><button id="closePreview">关闭预览 ×</button><p>长按图片即可保存到照片（iPhone / iPad）</p><img id="previewImg" alt="导出的关系图"></div>
@@ -50,7 +50,7 @@ let textAngle=Math.atan2(end.y-start.y,end.x-start.x);
 if(textAngle>Math.PI/2)textAngle-=Math.PI;
 if(textAngle< -Math.PI/2)textAngle+=Math.PI;
 const labelSide=offset>=0?1:-1;
-const label={x:mid.x+nx*labelSide*18,y:mid.y+ny*labelSide*18};
+const label={x:mid.x+nx*labelSide*11,y:mid.y+ny*labelSide*11};
 return {start,end,ctrl,mid,label,ang,textAngle,offset,nx,ny};}
 function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
 function editorWidth(){const v=$('viewport').clientWidth;return state.nodes.length>=10?Math.max(v,canvasSize()*.9):v;}
@@ -144,6 +144,7 @@ $('nodeImage').onchange=ev=>{const file=ev.target.files[0],n=nodeBy(selectedNode
 $('deleteNode').onclick=()=>{if(!nodeBy(selectedNode))return;snapshot();const oldH=canvasH();state.nodes=state.nodes.filter(n=>n.id!==selectedNode);state.edges=state.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);const newH=canvasH();if(newH<oldH){for(const n of state.nodes)n.y=clamp(n.y*newH/oldH,65,newH-65);}selectedNode=null;commit();};
 
 $('color').onchange=()=>{const e=edgeBy(selectedEdge);if(e){snapshot();e.color=$('color').value;commit();}};
+$('snapLabel').onclick=()=>{const e=edgeBy(selectedEdge);if(!e)return;snapshot();e.tx=0;e.ty=0;commit();};
 $('dash').onchange=()=>{const e=edgeBy(selectedEdge);if(e){snapshot();e.dash=$('dash').value;commit();}};
 
 $('deleteEdge').onclick=()=>{snapshot();state.edges=state.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;commit();};
