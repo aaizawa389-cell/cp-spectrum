@@ -110,7 +110,7 @@ label.addEventListener('focus',()=>{selectedEdge=edge.id;selectedNode=null;});la
 }
 for(const p of state.nodes){const el=document.createElement('div');el.className='node'+(selectedNode===p.id?' selected':'');el.style.left=(p.x/W*100)+'%';el.style.top=(p.y/H*100)+'%';const av=document.createElement('div');av.className='avatar';if(p.image){const img=document.createElement('img');img.src=p.image;av.append(img);}else av.textContent=(p.name||'?').slice(0,1);av.title='轻点头像上传或更换照片';const name=document.createElement('div');name.className='nm';name.textContent=p.name;el.append(av,name);nodes.append(el);
 el.addEventListener('click',ev=>{ev.stopPropagation();if(dragging){dragging=false;return;}if(mode==='connect'){if(!pending){pending=p.id;render();}else if(pending!==p.id){const from=pending;pending=null;if(!state.edges.some(e=>e.from===from&&e.to===p.id)){snapshot();const reverse=state.edges.find(e=>e.from===p.id&&e.to===from);const edge={id:uid(),from,to:p.id,text:'',color:'#222222',curve:0,dash:'solid'};state.edges.push(edge);selectedEdge=edge.id;selectedNode=null;commit();}else render();}}else{selectedNode=p.id;selectedEdge=null;render();}});
-if(mode==='move')drag(el,pos=>{p.x=clamp(pos.x,65,W-65);p.y=clamp(pos.y,65,H-65);el.style.left=(p.x/W*100)+'%';el.style.top=(p.y/H*100)+'%';render();},true,()=>{selectedNode=p.id;selectedEdge=null;render();$('nodeImage').click();},()=>autoArrangeCenterAfterDrop(p));
+if(mode==='move'){let dragOrigin=null;drag(el,pos=>{if(!dragOrigin)dragOrigin={x:p.x,y:p.y};p.x=clamp(pos.x,65,W-65);p.y=clamp(pos.y,65,H-65);el.style.left=(p.x/W*100)+'%';el.style.top=(p.y/H*100)+'%';render();},true,()=>{selectedNode=p.id;selectedEdge=null;render();$('nodeImage').click();},()=>{autoArrangeCenterAfterDrop(p,dragOrigin);dragOrigin=null;});}
 }
 }
 function applyView(){$('board').style.transform='translate('+viewX+'px,'+viewY+'px) scale('+zoom+')';}
@@ -123,17 +123,30 @@ viewport.addEventListener('touchend',e=>{if(!e.touches.length)gesture=null;else 
 let mousePan=null;viewport.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||e.button!==0||e.target.closest('.node,.note,.handle'))return;mousePan={x:e.clientX,y:e.clientY,vx:viewX,vy:viewY};e.preventDefault();},true);window.addEventListener('pointermove',e=>{if(mousePan){viewX=mousePan.vx+e.clientX-mousePan.x;viewY=mousePan.vy+e.clientY-mousePan.y;applyView();}});window.addEventListener('pointerup',()=>mousePan=null);window.addEventListener('pointercancel',()=>mousePan=null);
 viewport.addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();const r=viewport.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,old=zoom;zoom=Math.max(.25,Math.min(5,zoom*Math.exp(-e.deltaY*.01)));viewX=x-(x-viewX)*zoom/old;viewY=y-(y-viewY)*zoom/old;applyView();},{passive:false});
 function point(ev){const H=canvasH();const r=$('board').getBoundingClientRect();return {x:(ev.clientX-r.left)*W/r.width,y:(ev.clientY-r.top)*H/r.height};}
-function autoArrangeCenterAfterDrop(dragged){
- const cx=canvasSize()/2,cy=canvasH()/2;
- if(Math.hypot(dragged.x-cx,dragged.y-cy)>165)return;
- const centers=state.nodes.filter(n=>Math.hypot(n.x-cx,n.y-cy)<180);
- if(centers.length<2||centers.length>8)return;
- // Avoid unexpectedly moving a group that has already been laid out neatly.
+function autoArrangeCenterAfterDrop(dragged,origin){
+ const cx=canvasSize()/2,cy=canvasH()/2,H=canvasH(),W=canvasSize();
+ const distance=n=>Math.hypot(n.x-cx,n.y-cy);
+ const oldDistance=origin?Math.hypot(origin.x-cx,origin.y-cy):Infinity;
+ const newDistance=distance(dragged);
+ // Only reorganize after a character is moved from the outside ring into the center.
+ if(oldDistance<220||newDistance>205||state.nodes.length<4)return;
+ const centers=state.nodes.filter(n=>distance(n)<215);
+ const outer=state.nodes.filter(n=>distance(n)>=215);
+ if(!centers.includes(dragged)||centers.length>8||outer.length<2)return;
  const count=centers.length;
- const ordered=centers.map(node=>({node,angle:Math.atan2(node.y-cy,node.x-cx)})).sort((a,b)=>a.angle-b.angle);
- const radius=count===2?68:count===3?90:count===4?105:Math.max(115,Math.min(160,22*count));
- const start=count===2?Math.PI:count===4?-3*Math.PI/4:-Math.PI/2;
- ordered.forEach(({node},i)=>{const angle=start+2*Math.PI*i/count;node.x=cx+radius*Math.cos(angle);node.y=cy+radius*Math.sin(angle);});
+ // Arrange the central cluster in a compact, symmetrical shape.
+ if(count===1){centers[0].x=cx;centers[0].y=cy;}
+ else{
+  const ordered=centers.map(node=>({node,angle:Math.atan2(node.y-cy,node.x-cx)})).sort((a,b)=>a.angle-b.angle);
+  const radius=count===2?68:count===3?90:count===4?105:Math.max(115,Math.min(160,22*count));
+  const start=count===2?Math.PI:count===4?-3*Math.PI/4:-Math.PI/2;
+  ordered.forEach(({node},i)=>{const angle=start+2*Math.PI*i/count;node.x=cx+radius*Math.cos(angle);node.y=cy+radius*Math.sin(angle);});
+ }
+ // Close the empty slot in the outer ring, keeping the remaining characters in angular order.
+ const orderedOuter=outer.map(node=>({node,angle:Math.atan2(node.y-cy,node.x-cx)})).sort((a,b)=>a.angle-b.angle);
+ const radius=Math.min(outer.reduce((sum,n)=>sum+distance(n),0)/outer.length,W/2-85,H/2-90);
+ const startAngle=orderedOuter[0].angle;
+ orderedOuter.forEach(({node},i)=>{const angle=startAngle+2*Math.PI*i/outer.length;node.x=cx+radius*Math.cos(angle);node.y=cy+radius*Math.sin(angle);});
 }
 function drag(el,onMove,nodeDrag=false,onTap=null,onDrop=null){
  let start=null,moved=false,tapAvatar=false;
