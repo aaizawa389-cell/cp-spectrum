@@ -50,7 +50,7 @@ let textAngle=Math.atan2(end.y-start.y,end.x-start.x);
 if(textAngle>Math.PI/2)textAngle-=Math.PI;
 if(textAngle< -Math.PI/2)textAngle+=Math.PI;
 const labelSide=offset>=0?1:-1;
-const label={x:mid.x+nx*labelSide*38,y:mid.y+ny*labelSide*38};
+const label={x:mid.x+nx*labelSide*18,y:mid.y+ny*labelSide*18};
 return {start,end,ctrl,mid,label,ang,textAngle,offset,nx,ny};}
 function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
 function editorWidth(){const v=$('viewport').clientWidth;return state.nodes.length>=10?Math.max(v,canvasSize()*.9):v;}
