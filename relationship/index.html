@@ -53,8 +53,9 @@ const labelSide=offset>=0?1:-1;
 const label={x:mid.x+nx*labelSide*38,y:mid.y+ny*labelSide*38};
 return {start,end,ctrl,mid,label,ang,textAngle,offset,nx,ny};}
 function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
+function editorWidth(){const v=$('viewport').clientWidth;return state.nodes.length>=10?Math.max(v,canvasSize()*.9):v;}
 function render(){
-W=canvasSize();const H=canvasH();$('board').style.width=$('viewport').clientWidth+'px';$('board').style.transformOrigin='0 0';applyView();$('board').style.aspectRatio=W+' / '+H;$('svg').setAttribute('viewBox','0 0 '+W+' '+H);$('board').style.minWidth='';$('viewport').style.overflow='hidden';
+W=canvasSize();const H=canvasH();$('board').style.width=editorWidth()+'px';$('board').style.transformOrigin='0 0';applyView();$('board').style.aspectRatio=W+' / '+H;$('svg').setAttribute('viewBox','0 0 '+W+' '+H);$('board').style.minWidth='';$('viewport').style.overflow='hidden';
 $('move').classList.toggle('active',mode==='move');$('connect').classList.toggle('active',mode==='connect');$('connect').textContent=pending?'选择终点角色…':'↗ 添加箭头';
 $('nodePanel').classList.toggle('hidden',!selectedNode);$('edgePanel').classList.toggle('hidden',!selectedEdge);
 const n=nodeBy(selectedNode),e=edgeBy(selectedEdge);if(!n)selectedNode=null;if(!e)selectedEdge=null;
@@ -76,7 +77,7 @@ if(mode==='move')drag(el,pos=>{p.x=clamp(pos.x,65,W-65);p.y=clamp(pos.y,65,H-65)
 }
 }
 function applyView(){$('board').style.transform='translate('+viewX+'px,'+viewY+'px) scale('+zoom+')';}
-function centerCanvas(){const v=$('viewport'),w=v.clientWidth,h=w*canvasH()/canvasSize();$('board').style.width=w+'px';viewX=(v.clientWidth-w*zoom)/2;viewY=(v.clientHeight-h*zoom)/2;applyView();}
+function centerCanvas(){const v=$('viewport'),w=editorWidth(),h=w*canvasH()/canvasSize();$('board').style.width=w+'px';viewX=(v.clientWidth-w*zoom)/2;viewY=(v.clientHeight-h*zoom)/2;applyView();}
 const viewport=$('viewport');let gesture=null;
 function touchPoints(e){return Array.from(e.touches).map(t=>({x:t.clientX,y:t.clientY}));}
 viewport.addEventListener('touchstart',e=>{const p=touchPoints(e);if(p.length>=2){const mid={x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2},d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);gesture={type:'pinch',mid,d,zoom,x:viewX,y:viewY};e.preventDefault();}else if(p.length===1&&!e.target.closest('.node,.note,.handle')){gesture={type:'pan',x:p[0].x,y:p[0].y,vx:viewX,vy:viewY};e.preventDefault();}},{passive:false,capture:true});
