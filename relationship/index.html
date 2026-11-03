@@ -157,24 +157,9 @@ $('reset').onclick=()=>{if(!confirm('确定清空整张关系图吗？'))return;
 $('closePreview').onclick=()=>$('preview').classList.add('hidden');
 function wrap(ctx,text,x,y,maxWidth,lineHeight=17){const lines=String(text||'').split('\n');let yy=y;ctx.textAlign='center';for(const line of lines){let segment='';for(const char of line){if(ctx.measureText(segment+char).width>maxWidth&&segment){ctx.fillText(segment,x,yy);yy+=lineHeight;segment=char;}else segment+=char;}ctx.fillText(segment,x,yy);yy+=lineHeight;} }
 $('png').onclick=async()=>{const btn=$('png');btn.disabled=true;btn.textContent='正在生成…';try{const scale=state.nodes.length>30?1.25:2,canvas=document.createElement('canvas');
-// Only reflow positions for PNG; the editable layout and saved coordinates stay unchanged.
+// Export the exact saved editor positions; never rearrange or rescale characters.
 const source=state.nodes;
-if(source.length>=10){
- // Large groups: export as a compact circular arrangement, without modifying the editable project.
- 
- const avgX=source.reduce((sum,n)=>sum+n.x,0)/source.length;
- const avgY=source.reduce((sum,n)=>sum+n.y,0)/source.length;
- const ordered=[...source].sort((a,b)=>Math.atan2(a.y-avgY,a.x-avgX)-Math.atan2(b.y-avgY,b.x-avgX));
- exportNodes=ordered.map((n,i)=>{return {...n,...compactPosition(i,ordered.length)};});
-}else if(source.length>1){
- const xs=source.map(n=>n.x),ys=source.map(n=>n.y);
- const minNX=Math.min(...xs),maxNX=Math.max(...xs),minNY=Math.min(...ys),maxNY=Math.max(...ys);
- const spanX=Math.max(1,maxNX-minNX),spanY=Math.max(1,maxNY-minNY);
- const targetSpan=Math.max(420,Math.min(850,Math.max(spanX,spanY)*.78));
- const sx=Math.min(1.55,targetSpan/spanX),sy=Math.min(1,Math.max(.38,targetSpan/spanY));
- const cx=(minNX+maxNX)/2,cy=(minNY+maxNY)/2;
- exportNodes=source.map(n=>({...n,x:cx+(n.x-cx)*sx,y:cy+(n.y-cy)*sy}));
-}
+exportNodes=null;
 // Crop the exported image to the occupied artwork, independently of editor canvas size.
 let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
 const include=(x,y,p=0)=>{minX=Math.min(minX,x-p);minY=Math.min(minY,y-p);maxX=Math.max(maxX,x+p);maxY=Math.max(maxY,y+p);};
