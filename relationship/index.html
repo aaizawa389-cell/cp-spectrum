@@ -1,8 +1,7 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>♡ Relationship Canvas | CP / CB 关系图</title><style>
 *{box-sizing:border-box}body{margin:0;background:#f8f7f6;color:#29272a;font:14px system-ui,-apple-system,"PingFang SC",sans-serif}main{max-width:1700px;margin:auto;padding:18px}h1{font-size:23px;margin:4px 0}.sub{color:#777;margin:4px 0 16px}.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0}.history-buttons{display:inline-flex;gap:8px;white-space:nowrap;flex-shrink:0}button,input,select{font:inherit;border:1px solid #d8d4d7;border-radius:9px;background:white;padding:9px 11px;color:inherit}button{cursor:pointer}button:hover{background:#f1edf0}button.active{background:#f5dfe9;border-color:#d59bb5}.muted{font-size:12px;color:#777}.wrap{overflow:hidden;touch-action:none;background:#fff;border:1px solid #dedade;border-radius:14px;height:clamp(460px,72vh,1050px);overscroll-behavior:none;position:relative}.wrap.panning{cursor:grab;touch-action:none}.wrap.panning:active{cursor:grabbing}.board{position:absolute;left:0;top:0;width:100%;aspect-ratio:1000/720;background:white;touch-action:none;flex-shrink:0}.edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.hit{fill:none;stroke:transparent;stroke-width:24;pointer-events:stroke;cursor:pointer}.path{fill:none;stroke-width:2.5;pointer-events:none}.node{position:absolute;width:108px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:grab;touch-action:none;user-select:none;z-index:2}.node:active{cursor:grabbing}.avatar{height:80px;width:80px;border-radius:50%;border:2px solid #cfc4cb;background:#f2eaf0;display:grid;place-items:center;overflow:hidden;font-size:25px;color:#665c63}.avatar img{width:100%;height:100%;object-fit:cover;pointer-events:none}.node .nm{font-size:13px;max-width:108px;text-align:center;overflow-wrap:anywhere;background:#ffffffd9;border-radius:4px;padding:1px 3px}.node.selected .avatar{outline:3px solid #e7b2ca}.note{position:absolute;width:155px;min-height:26px;transform:translate(-50%,-50%);border:1px solid transparent;background:transparent;border-radius:5px;resize:none;overflow:hidden;text-align:center;padding:3px 5px;font:13px/1.35 system-ui,-apple-system,"PingFang SC",sans-serif;color:#383238;z-index:3}.note:focus{outline:none;border:1px dashed #d5a1b6;background:white}.note.selected{border:1px dashed #dfb5c7}.handle{position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #b782a0;transform:translate(-50%,-50%);z-index:5;cursor:move;touch-action:none}.panel{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:10px 0}.panel label{display:flex;align-items:center;gap:6px}.panel input[type=color]{padding:2px;width:38px;height:34px}.panel input[type=range]{width:100px}.hidden{display:none!important}.help{font-size:12px;color:#777;margin:10px 0}.pill{background:#f3edf1;border-radius:12px;padding:5px 9px}footer{text-align:center;color:#999;padding:20px;font-size:12px}#preview{position:fixed;inset:0;z-index:100;background:#18161be8;overflow:auto;padding:20px;text-align:center;color:white}#preview img{max-width:100%;height:auto;background:white}#preview button{display:block;margin:0 0 15px auto}#fileImport{display:none}@media(max-width:650px){main{padding:10px}h1{font-size:20px}.bar{gap:5px;margin:7px 0}.bar button{padding:7px 8px;font-size:12px}.panel{font-size:12px;gap:6px}.panel input[type=file]{max-width:150px}.sub{font-size:12px;margin-bottom:10px}.help{line-height:1.6}.board{aspect-ratio:3/4}.node{width:76px}.avatar{width:58px;height:58px;font-size:20px}.node .nm{font-size:11px;max-width:76px}.note{width:100px;font-size:11px;padding:2px 3px}.handle{width:14px;height:14px}.bar{justify-content:center}.wrap{height:65vh;min-height:420px}}
 </style></head><body><main><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px"><a href="../tools/" style="display:inline-block;padding:8px 13px;border:1px solid #ead4dc;border-radius:30px;background:#fff9f9;color:#926d80;text-decoration:none;font-size:13px;font-weight:500">← aizawa's tools · 工具合集</a><span class="muted" id="status" style="margin-left:auto;text-align:right">自动保存</span></div><h1>♡ Relationship Canvas</h1><div class="sub">多人关系性生成器，也可以当作普通的 CP 连线图，大家自由发挥～</div>
-<div class="bar"><button id="add">＋ 添加角色</button><button id="move" class="active">✋ 移动角色</button><button id="connect">↗ 手动连线</button><button id="fillEdges">补齐双向箭头</button><button id="clearEdges">清除所有箭头</button><button id="ring">◯ 环形布局</button><button id="star">✳ 中心辐射</button><button id="tidyOuter">均匀排列外围</button><button id="tidyHelp" type="button" aria-label="查看均匀排列外围功能说明" aria-expanded="false" style="padding:7px 9px;border-radius:50%;color:#926d80">ⓘ</button></div>
-<div id="tidyHelpText" class="hidden" role="status" style="margin:2px 0 8px;padding:10px 12px;border:1px solid #ead4dc;border-radius:9px;background:#fff9fb;color:#6e5965;font-size:12px;line-height:1.65">适用于<strong>多人位于中心</strong>的布局：先把两位或更多角色拖到中心，再点击「均匀排列外围」，系统会保留中心角色的位置，重新均匀分布周围角色。再次点击 ⓘ 可收起说明。</div>
+<div class="bar"><button id="add">＋ 添加角色</button><button id="move" class="active">✋ 移动角色</button><button id="connect">↗ 手动连线</button><button id="fillEdges">补齐双向箭头</button><button id="clearEdges">清除所有箭头</button><button id="ring">◯ 环形布局</button><button id="star" title="首次点击生成单中心布局，再次点击增加中心角色并自动整理外围">✳ 中心辐射</button></div>
 <div class="bar"><button id="batchImages">批量导入头像</button><input type="file" id="batchImageFiles" accept="image/*" multiple style="display:none"><button id="save">保存项目</button><button id="load">导入项目</button><input type="file" id="fileImport" accept=".json,application/json"><button id="png">导出 PNG</button><button id="reset">清空画布</button></div>
 <div class="bar"><span class="history-buttons"><button id="undo" title="撤销" aria-label="撤销">↶</button><button id="redo" title="重做" aria-label="重做">↷</button></span></div>
 <div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option></select></label><button id="reverse">反向复制</button><button id="snapLabel">文字贴近箭头</button><button id="deleteEdge">删除箭头</button></div>
@@ -33,7 +32,36 @@ function addMissingPairs(){
  }
  return count;
 }
-function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-225;others[0].y=cy;others[1].x=cx+225;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;const r=n===3?245:385;p.x=cx+r*Math.cos(a);p.y=cy+(n===3?205:H/2-85)*Math.sin(a);});commit();}
+function layout(kind){
+ const ns=state.nodes,n=ns.length;if(!n)return;
+ W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;
+ if(kind==='star'){
+  // Every click adds one center character; the existing center group stays central.
+  const existing=ns.filter(p=>Math.hypot(p.x-cx,p.y-cy)<180);
+  const isStarLayout=existing.length>0&&ns.some(p=>Math.hypot(p.x-cx,p.y-cy)>210);
+  const centers=isStarLayout?existing.slice():[];
+  const centerIDs=new Set(centers.map(p=>p.id));
+  const available=ns.filter(p=>!centerIDs.has(p.id));
+  if(!available.length)return;
+  const preferred=available.find(p=>p.id===selectedNode);
+  const next=preferred||available[0];
+  if(centers.length>=Math.min(8,n-1)){alert('中心最多支持 8 位角色，并且需要保留外围角色。');return;}
+  centers.push(next);centerIDs.add(next.id);
+  const outer=ns.filter(p=>!centerIDs.has(p.id));
+  snapshot();
+  const k=centers.length;
+  const r=k===1?0:k===2?68:k===3?90:k===4?105:Math.max(115,Math.min(160,22*k));
+  const initial=k===2?Math.PI:k===4?-3*Math.PI/4:-Math.PI/2;
+  centers.forEach((p,i)=>{const angle=initial+2*Math.PI*i/k;p.x=cx+r*Math.cos(angle);p.y=cy+r*Math.sin(angle);});
+  const outerR=n===3?225:Math.min(365,W/2-85,H/2-90);
+  outer.forEach((p,i)=>{const angle=-Math.PI/2+2*Math.PI*i/outer.length;p.x=cx+outerR*Math.cos(angle);p.y=cy+outerR*Math.sin(angle);});
+  commit();return;
+ }
+ snapshot();
+ if(n>18){arrangeLargeGroup();}
+ else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;const r=n===3?245:385;p.x=cx+r*Math.cos(a);p.y=cy+(n===3?205:H/2-85)*Math.sin(a);});
+ commit();
+}
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
 const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
@@ -100,32 +128,6 @@ function autoArrangeCenterAfterDrop(dragged){
  const start=count===2?Math.PI:count===4?-3*Math.PI/4:-Math.PI/2;
  ordered.forEach(({node},i)=>{const angle=start+2*Math.PI*i/count;node.x=cx+radius*Math.cos(angle);node.y=cy+radius*Math.sin(angle);});
 }
-function tidyOuterRing(){
- const ns=state.nodes;if(ns.length<4){alert('至少需要 4 位角色才能整理外围。');return;}
- const cx=canvasSize()/2,cy=canvasH()/2;
- const radial=ns.map(n=>({node:n,d:Math.hypot(n.x-cx,n.y-cy)})).sort((a,b)=>a.d-b.d);
- // Separate the central cluster from the surrounding ring using the largest radial gap.
- let gap=-Infinity,split=0;
- for(let i=0;i<Math.min(radial.length-2,Math.max(1,Math.floor(radial.length/3)));i++){
-  const delta=radial[i+1].d-radial[i].d;
-  if(delta>gap){gap=delta;split=i+1;}
- }
- const typicalOuter=radial.slice(Math.max(1,split)).reduce((sum,p)=>sum+p.d,0)/Math.max(1,radial.length-Math.max(1,split));
- const centers=(gap>Math.max(55,typicalOuter*.17)?radial.slice(0,split):radial.slice(0,1)).map(x=>x.node);
- const centerIDs=new Set(centers.map(n=>n.id));
- const outer=ns.filter(n=>!centerIDs.has(n.id));
- if(outer.length<3){alert('外围角色不足 3 人，无法均匀排列。');return;}
- const ordered=outer.map(n=>({node:n,angle:Math.atan2(n.y-cy,n.x-cx)})).sort((a,b)=>a.angle-b.angle);
- const first=ordered[0].angle;
- const radius=outer.reduce((sum,n)=>sum+Math.hypot(n.x-cx,n.y-cy),0)/outer.length;
- const safeRadius=Math.min(radius,canvasSize()/2-70,canvasH()/2-85);
- snapshot();
- ordered.forEach((item,i)=>{const angle=first+2*Math.PI*i/ordered.length;item.node.x=cx+safeRadius*Math.cos(angle);item.node.y=cy+safeRadius*Math.sin(angle);});
- commit();
-}
-$('tidyOuter').onclick=tidyOuterRing;
-$('tidyHelp').onclick=()=>{const panel=$('tidyHelpText');const show=panel.classList.contains('hidden');panel.classList.toggle('hidden',!show);$('tidyHelp').setAttribute('aria-expanded',String(show));};
-
 function drag(el,onMove,nodeDrag=false,onTap=null,onDrop=null){
  let start=null,moved=false,tapAvatar=false;
  el.addEventListener('pointerdown',ev=>{
