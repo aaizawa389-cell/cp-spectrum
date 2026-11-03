@@ -37,9 +37,16 @@ function layout(kind){
  W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;
  if(kind==='star'){
   // Every click adds one center character; the existing center group stays central.
-  const existing=ns.filter(p=>Math.hypot(p.x-cx,p.y-cy)<180);
-  const isStarLayout=existing.length>0&&ns.some(p=>Math.hypot(p.x-cx,p.y-cy)>210);
-  const centers=isStarLayout?existing.slice():[];
+  // Detect the full center cluster using the gap to the outer ring.
+  // A fixed 180px threshold can incorrectly discard center members after 3+ are placed.
+  const radial=ns.map(p=>({p,d:Math.hypot(p.x-cx,p.y-cy)})).sort((a,b)=>a.d-b.d);
+  let split=0,biggestGap=0;
+  for(let i=0;i<radial.length-1;i++){
+   const gap=radial[i+1].d-radial[i].d;
+   if(gap>biggestGap){biggestGap=gap;split=i+1;}
+  }
+  const hasRing=split>0&&split<ns.length&&biggestGap>Math.max(65,W*.065)&&radial[split-1].d<Math.min(W,H)*.29;
+  const centers=hasRing?radial.slice(0,split).map(item=>item.p):[];
   const centerIDs=new Set(centers.map(p=>p.id));
   const available=ns.filter(p=>!centerIDs.has(p.id));
   if(!available.length)return;
