@@ -37,7 +37,7 @@ const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
 // Anchor each arrow to the visible avatar circle, not the node's text/name box.
  // Give reciprocal arrows separate lanes and stop the tips just outside the rim.
- const side=reverse?14:0;
+ const side=reverse?8:0;
  const radius=40,clearance=34;
  const inset=Math.sqrt(radius*radius-side*side)+clearance;
  const start={x:ax+ux*inset+nx*side,y:ay+uy*inset+ny*side};
