@@ -32,7 +32,7 @@ function addMissingPairs(){
  }
  return count;
 }
-function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-320;others[0].y=cy;others[1].x=cx+320;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;p.x=cx+385*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});commit();}
+function layout(kind){snapshot();const ns=state.nodes,n=ns.length;if(!n)return;W=canvasSize();const H=canvasH(),cx=W/2,cy=H/2;if(kind==='star'){const central=selectedNode&&nodeBy(selectedNode)||ns[0];state.edges=state.edges.filter(e=>e.from===central.id||e.to===central.id);if(selectedEdge&&!state.edges.some(e=>e.id===selectedEdge))selectedEdge=null;central.x=cx;central.y=cy;const others=ns.filter(x=>x!==central);if(n===3){others[0].x=cx-225;others[0].y=cy;others[1].x=cx+225;others[1].y=cy;}else others.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/others.length;p.x=cx+365*Math.cos(a);p.y=cy+(H/2-85)*Math.sin(a);});}else if(n>18){arrangeLargeGroup();}else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;const r=n===3?245:385;p.x=cx+r*Math.cos(a);p.y=cy+(n===3?205:H/2-85)*Math.sin(a);});commit();}
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
 const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
@@ -186,13 +186,16 @@ $('png').onclick=async()=>{const btn=$('png');btn.disabled=true;btn.textContent=
 // Export the exact saved editor positions; never rearrange or rescale characters.
 const source=state.nodes;
 exportNodes=null;
+// Three-person diagrams should export as a compact, square composition even when saved in an older wide layout.
+if(source.length===3){const minNX=Math.min(...source.map(n=>n.x)),maxNX=Math.max(...source.map(n=>n.x)),minNY=Math.min(...source.map(n=>n.y)),maxNY=Math.max(...source.map(n=>n.y));const span=Math.max(maxNX-minNX,maxNY-minNY);if(span>470){const factor=470/span,cx=(minNX+maxNX)/2,cy=(minNY+maxNY)/2;exportNodes=source.map(n=>({...n,x:cx+(n.x-cx)*factor,y:cy+(n.y-cy)*factor}));}}
+
 // Crop the exported image to the occupied artwork, independently of editor canvas size.
 let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
 const include=(x,y,p=0)=>{minX=Math.min(minX,x-p);minY=Math.min(minY,y-p);maxX=Math.max(maxX,x+p);maxY=Math.max(maxY,y+p);};
 for(const n of (exportNodes||state.nodes)){include(n.x,n.y-10,55);include(n.x,n.y+43,18);}
 for(const e of state.edges){const g=geom(e);if(!g)continue;include(g.start.x,g.start.y,15);include(g.end.x,g.end.y,15);include(g.ctrl.x,g.ctrl.y,Math.abs(g.offset)*0+8);if(e.text)include(g.label.x+(e.tx||0),g.label.y+(e.ty||0),88);}
 if(!Number.isFinite(minX)){minX=0;minY=0;maxX=640;maxY=400;}
-const margin=45;let left=minX-margin,top=minY-margin,outW=Math.max(220,Math.ceil(maxX-minX+2*margin)),outH=Math.max(180,Math.ceil(maxY-minY+2*margin));if(source.length>=10){const side=Math.max(outW,outH);left-=(side-outW)/2;top-=(side-outH)/2;outW=side;outH=side;}
+const margin=45;let left=minX-margin,top=minY-margin,outW=Math.max(220,Math.ceil(maxX-minX+2*margin)),outH=Math.max(180,Math.ceil(maxY-minY+2*margin));if(source.length===3||source.length>=10){const side=Math.max(outW,outH);left-=(side-outW)/2;top-=(side-outH)/2;outW=side;outH=side;}
 canvas.width=outW*scale;canvas.height=outH*scale;
 const ctx=canvas.getContext('2d');ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH);ctx.save();ctx.translate(-left,-top);
 for(const e of state.edges){const g=geom(e);if(!g)continue;ctx.strokeStyle=e.color||'#222222';ctx.lineWidth=2.5;ctx.setLineDash(e.dash==='dash'?[7,6]:[]);ctx.beginPath();ctx.moveTo(g.start.x,g.start.y);ctx.quadraticCurveTo(g.ctrl.x,g.ctrl.y,g.end.x,g.end.y);ctx.stroke();ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(g.end.x-12*Math.cos(g.ang-.48),g.end.y-12*Math.sin(g.ang-.48));ctx.lineTo(g.end.x,g.end.y);ctx.lineTo(g.end.x-12*Math.cos(g.ang+.48),g.end.y-12*Math.sin(g.ang+.48));ctx.stroke();
