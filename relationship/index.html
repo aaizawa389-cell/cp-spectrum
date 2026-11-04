@@ -5,7 +5,7 @@
 <div id="starHelpText" class="hidden" role="status" style="margin:2px 0 8px;padding:10px 12px;border:1px solid #ead4dc;border-radius:9px;background:#fff9fb;color:#6e5965;font-size:12px;line-height:1.65">中心最多可放置 <strong>8 位角色</strong>。再次点击「中心辐射」，或将外围角色拖入中心并松开，即可增加中心角色。系统会自动整理中心人物，并均匀排列外围角色。</div>
 <div class="bar"><button id="batchImages">批量导入头像</button><input type="file" id="batchImageFiles" accept="image/*" multiple style="display:none"><button id="save">保存项目</button><button id="load">导入项目</button><input type="file" id="fileImport" accept=".json,application/json"><button id="png">导出 PNG</button><button id="reset">清空画布</button></div>
 <div class="bar"><span class="history-buttons"><button id="undo" title="撤销" aria-label="撤销">↶</button><button id="redo" title="重做" aria-label="重做">↷</button></span></div>
-<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option></select></label><button id="reverse">反向复制</button><button id="snapLabel">重置文字位置</button><button id="deleteEdge">删除箭头</button></div>
+<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option></select></label><button id="reverse">反向复制</button><button id="deleteEdge">删除箭头</button></div>
 <div id="nodePanel" class="panel hidden"><span class="pill" id="nodeTitle"></span><label>名字 <input id="nodeName" type="text" maxlength="40"></label><label>照片 <input id="nodeImage" type="file" accept="image/*"></label><button id="deleteNode">删除角色</button></div>
 <div class="wrap" id="viewport"><div class="board" id="board"><svg class="edges" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="none"></svg><div id="nodes"></div><div id="notes"></div><div id="handles"></div></div></div>
 <div class="help">3–5 人自动生成双向黑色箭头；第 6 人起新增角色不再自动连线，可使用手动连线。点击头像直接上传照片；点击角色名字可修改名称。点击箭头旁的文字填写感情，不需要的箭头可选中删除。</div><div class="help" style="margin-top:16px"><strong>保存项目，方便下次继续编辑 ♡</strong><p style="margin:7px 0 0">如果角色较多，或之后还想调整关系，除了导出 PNG 图片，也可以点击「保存项目」备份当前内容。下次使用时选择「导入项目」，就能继续修改，不必从头制作。</p></div><footer>制表人：aizawa · 本工具不会上传你的角色照片</footer></main><div id="preview" class="hidden"><button id="closePreview">关闭预览 ×</button><p>长按图片即可保存到照片（iPhone / iPad）</p><img id="previewImg" alt="导出的关系图"></div>
@@ -209,7 +209,7 @@ $('nodeImage').onchange=ev=>{const file=ev.target.files[0],n=nodeBy(selectedNode
 $('deleteNode').onclick=()=>{if(!nodeBy(selectedNode))return;snapshot();const oldH=canvasH();state.nodes=state.nodes.filter(n=>n.id!==selectedNode);state.edges=state.edges.filter(e=>e.from!==selectedNode&&e.to!==selectedNode);const newH=canvasH();if(newH<oldH){for(const n of state.nodes)n.y=clamp(n.y*newH/oldH,65,newH-65);}selectedNode=null;commit();};
 
 $('color').onchange=()=>{const e=edgeBy(selectedEdge);if(e){snapshot();e.color=$('color').value;commit();}};
-$('snapLabel').onclick=()=>{const e=edgeBy(selectedEdge);if(!e)return;snapshot();e.tx=0;e.ty=0;commit();};
+
 $('dash').onchange=()=>{const e=edgeBy(selectedEdge);if(e){snapshot();e.dash=$('dash').value;commit();}};
 
 $('deleteEdge').onclick=()=>{snapshot();state.edges=state.edges.filter(e=>e.id!==selectedEdge);selectedEdge=null;commit();};
