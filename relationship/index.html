@@ -75,7 +75,7 @@ const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
 const offset=0;
 // Reciprocal arrows run in two clean parallel lanes, with their heads at opposite ends.
 // The normal reverses with direction, so a positive lane offset separates both paths.
- const side=reverse?12:0;
+ const side=reverse?22:0;
  const radius=40,clearance=34;
  const inset=Math.sqrt(radius*radius-side*side)+clearance;
  const start={x:ax+ux*inset+nx*side,y:ay+uy*inset+ny*side};
@@ -88,7 +88,7 @@ let textAngle=Math.atan2(end.y-start.y,end.x-start.x);
 if(textAngle>Math.PI/2)textAngle-=Math.PI;
 if(textAngle< -Math.PI/2)textAngle+=Math.PI;
 const labelSide=1;
-const label={x:mid.x+nx*labelSide*(reverse?25:19),y:mid.y+ny*labelSide*(reverse?25:19)};
+const label={x:mid.x+nx*labelSide*(reverse?32:19),y:mid.y+ny*labelSide*(reverse?32:19)};
 return {start,end,ctrl,mid,label,ang,textAngle,offset,nx,ny};}
 function svgEl(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el;}
 function editorWidth(){const v=$('viewport').clientWidth;return state.nodes.length>=10?Math.max(v,canvasSize()*.9):v;}
