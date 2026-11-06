@@ -179,7 +179,7 @@ function drag(el,onMove,nodeDrag=false,onTap=null,onDrop=null){
   window.addEventListener('pointercancel',end);
  });
 }
-function add(){if(state.nodes.length>=60){alert('最多添加 60 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();W=canvasSize();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();if(state.nodes.length>=10)requestAnimationFrame(centerCanvas);}
+function add(){if(state.nodes.length>=65){alert('最多添加 65 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();W=canvasSize();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();if(state.nodes.length>=10)requestAnimationFrame(centerCanvas);}
 $('add').onclick=add;$('fillEdges').onclick=()=>{const missing=state.nodes.length*(state.nodes.length-1)-state.edges.length;if(missing<=0){alert('所有双向箭头都已经存在。');return;}snapshot();addMissingPairs();commit();};$('clearEdges').onclick=()=>{if(!state.edges.length)return;if(!confirm('确定删除图上所有箭头和关系文字吗？角色和头像会保留。'))return;snapshot();state.edges=[];selectedEdge=null;pending=null;mode='move';commit();};$('move').onclick=()=>{mode='move';pending=null;render();};$('connect').onclick=()=>{mode='connect';pending=null;render();};$('ring').onclick=()=>layout('ring');$('star').onclick=()=>layout('star');
 $('starHelp').onclick=()=>{const panel=$('starHelpText');const show=panel.classList.contains('hidden');panel.classList.toggle('hidden',!show);$('starHelp').setAttribute('aria-expanded',String(show));};
 $('nodeName').oninput=()=>{const n=nodeBy(selectedNode);if(n){n.name=$('nodeName').value;persist();const el=[...$('nodes').children].find(x=>x.classList.contains('selected'));if(el){el.querySelector('.nm').textContent=n.name;if(!n.image)el.querySelector('.avatar').textContent=n.name.slice(0,1);}}};
@@ -188,14 +188,14 @@ $('batchImages').onclick=()=>$('batchImageFiles').click();
 $('batchImageFiles').onchange=async ev=>{
  const files=Array.from(ev.target.files||[]).filter(f=>f.type.startsWith('image/'));ev.target.value='';
  if(!files.length)return;
- const count=Math.min(files.length,60);
+ const count=Math.min(files.length,65);
  const existing=state.nodes.length;
  const replacing=Math.min(existing,count);
  const adding=Math.max(0,count-existing);
  if(!confirm('将按文件名顺序为前 '+count+' 位角色设置头像'+(adding?'，并自动新增 '+adding+' 位角色':'')+'。已有角色的名字和连线会保留，原头像会被替换。是否继续？'))return;
  const btn=$('batchImages');btn.disabled=true;btn.textContent='正在导入头像…';
  try{
-  const ordered=files.slice(0,60).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const ordered=files.slice(0,65).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
   const images=[];
   for(const file of ordered){
    const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('无法读取 '+file.name));reader.readAsDataURL(file);});
@@ -206,7 +206,7 @@ $('batchImageFiles').onchange=async ev=>{
   for(let i=0;i<images.length;i++)state.nodes[i].image=images[i];
   if(state.nodes.length>=10)arrangeLargeGroup();
   W=canvasSize();selectedNode=null;selectedEdge=null;commit();requestAnimationFrame(centerCanvas);
-  alert('已导入 '+images.length+' 张头像。'+(files.length>60?'最多支持 60 张，超出的图片未导入。':''));
+  alert('已导入 '+images.length+' 张头像。'+(files.length>65?'最多支持 65 张，超出的图片未导入。':''));
  }catch(err){alert('批量导入失败：'+err.message);}finally{btn.disabled=false;btn.textContent='批量导入头像';}
 };
 $('nodeImage').onchange=ev=>{const file=ev.target.files[0],n=nodeBy(selectedNode);if(!file||!n)return;const reader=new FileReader();reader.onload=()=>{snapshot();n.image=String(reader.result);commit();};reader.readAsDataURL(file);ev.target.value='';};
@@ -225,7 +225,7 @@ $('undo').onclick=()=>{if(!history.length)return;future.push(JSON.stringify(stat
 $('redo').onclick=()=>{if(!future.length)return;history.push(JSON.stringify(state));state=JSON.parse(future.pop());selectedEdge=null;selectedNode=null;commit();};
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 $('save').onclick=()=>download(new Blob([JSON.stringify({version:1,...state},null,2)],{type:'application/json'}),'CP-CB-关系图项目.json');
-$('load').onclick=()=>$('fileImport').click();$('fileImport').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.nodes)||!Array.isArray(obj.edges)||obj.nodes.length>60)throw Error('项目格式无效或人数超过60人');snapshot();state={nodes:obj.nodes,edges:obj.edges};selectedEdge=null;selectedNode=null;commit();}catch(e){alert('导入失败：'+e.message);}ev.target.value='';};
+$('load').onclick=()=>$('fileImport').click();$('fileImport').onchange=async ev=>{const f=ev.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.nodes)||!Array.isArray(obj.edges)||obj.nodes.length>65)throw Error('项目格式无效或人数超过65人');snapshot();state={nodes:obj.nodes,edges:obj.edges};selectedEdge=null;selectedNode=null;commit();}catch(e){alert('导入失败：'+e.message);}ev.target.value='';};
 $('reset').onclick=()=>{if(!confirm('确定清空整张关系图吗？'))return;snapshot();state={nodes:[],edges:[]};selectedEdge=null;selectedNode=null;commit();};
 $('closePreview').onclick=()=>$('preview').classList.add('hidden');
 function labelWidth(text){const lines=String(text||'').split('\n');const longest=Math.max(0,...lines.map(line=>Array.from(line).reduce((w,ch)=>w+(/[\u0000-\u007f]/.test(ch)?7:13),0)));return Math.max(155,Math.min(310,longest+22));}
