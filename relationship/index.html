@@ -244,7 +244,8 @@ for(const n of (exportNodes||state.nodes)){include(n.x,n.y-10,55);include(n.x,n.
 for(const e of state.edges){const g=geom(e);if(!g)continue;include(g.start.x,g.start.y,15);include(g.end.x,g.end.y,15);include(g.ctrl.x,g.ctrl.y,Math.abs(g.offset)*0+8);if(e.text)include(g.label.x+(e.tx||0),g.label.y+(e.ty||0),labelWidth(e.text)/2+12);}
 if(!Number.isFinite(minX)){minX=0;minY=0;maxX=640;maxY=400;}
 const margin=45;let left=minX-margin,top=minY-margin,outW=Math.max(220,Math.ceil(maxX-minX+2*margin)),outH=Math.max(180,Math.ceil(maxY-minY+2*margin));if(source.length>=3){const side=Math.max(outW,outH);left-=(side-outW)/2;top-=(side-outH)/2;outW=side;outH=side;}
-canvas.width=outW*scale;canvas.height=outH*scale;
+const squareSide=Math.ceil(Math.max(outW,outH));left-=(squareSide-outW)/2;top-=(squareSide-outH)/2;outW=squareSide;outH=squareSide;
+canvas.width=Math.round(squareSide*scale);canvas.height=canvas.width;
 const ctx=canvas.getContext('2d');ctx.scale(scale,scale);ctx.fillStyle='#fff';ctx.fillRect(0,0,outW,outH);ctx.save();ctx.translate(-left,-top);
 for(const e of state.edges){const g=geom(e);if(!g)continue;ctx.strokeStyle=e.color||'#222222';ctx.lineWidth=2.5;ctx.setLineDash(e.dash==='dash'?[7,6]:[]);ctx.beginPath();ctx.moveTo(g.start.x,g.start.y);ctx.quadraticCurveTo(g.ctrl.x,g.ctrl.y,g.end.x,g.end.y);ctx.stroke();ctx.setLineDash([]);if(e.dash!=='plain'){ctx.beginPath();ctx.moveTo(g.end.x-12*Math.cos(g.ang-.48),g.end.y-12*Math.sin(g.ang-.48));ctx.lineTo(g.end.x,g.end.y);if(!state.edges.some(other=>other!==e&&other.from===e.to&&other.to===e.from))ctx.lineTo(g.end.x-12*Math.cos(g.ang+.48),g.end.y-12*Math.sin(g.ang+.48));ctx.stroke();}
 if(e.text){ctx.save();ctx.translate(g.label.x+(e.tx||0),g.label.y+(e.ty||0));ctx.rotate(g.textAngle);ctx.font='13px sans-serif';const lines=String(e.text).split('\n');const boxH=Math.max(26,lines.length*17+7);ctx.fillStyle='#383238';wrap(ctx,e.text,0,-boxH/2+15,labelWidth(e.text)-12);ctx.restore();}}
