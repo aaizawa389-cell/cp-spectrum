@@ -94,14 +94,14 @@ try {
 const plan=layout(vertical?760:760),width=plan.width,height=plan.height,canvas=document.createElement('canvas');
 canvas.width=width;canvas.height=height;
 const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
-ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.textAlign='center';ctx.font='300 16px "Helvetica Neue",Arial,sans-serif';
+ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.textAlign='center';ctx.font='16px Arial,sans-serif';
 if(vertical){
  const ax=plan.axisX;ctx.beginPath();ctx.moveTo(ax,plan.top);ctx.lineTo(ax,plan.bottom);ctx.lineTo(ax-8,plan.bottom-12);ctx.moveTo(ax,plan.bottom);ctx.lineTo(ax+8,plan.bottom-12);ctx.stroke();
- for(let i=0;i<=10;i++){const y=plan.top+(1-i/10)*(plan.bottom-plan.top);ctx.beginPath();ctx.moveTo(ax-7,y);ctx.lineTo(ax+7,y);ctx.stroke();ctx.fillStyle='#666';ctx.fillText((i/10).toFixed(1),ax-34,y+5);}
+ for(let i=0;i<=10;i++){const y=plan.top+(1-i/10)*(plan.bottom-plan.top);ctx.beginPath();ctx.moveTo(ax-7,y);ctx.lineTo(ax+7,y);ctx.stroke();ctx.fillStyle='#222';ctx.fillText((i/10).toFixed(1),ax-34,y+5);}
 }else{
  const left=width*.07,right=width*.93,y=height-AXIS_BOTTOM;
  ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.lineTo(right-12,y-8);ctx.moveTo(right,y);ctx.lineTo(right-12,y+8);ctx.stroke();
- for(let i=0;i<=10;i++){const x=left+(right-left)*i/10;ctx.beginPath();ctx.moveTo(x,y-7);ctx.lineTo(x,y+7);ctx.stroke();ctx.fillStyle='#666';ctx.fillText((i/10).toFixed(1),x,y+30);}
+ for(let i=0;i<=10;i++){const x=left+(right-left)*i/10;ctx.beginPath();ctx.moveTo(x,y-7);ctx.lineTo(x,y+7);ctx.stroke();ctx.fillStyle='#222';ctx.fillText((i/10).toFixed(1),x,y+30);}
 }
 for(const item of plan.items){
  const {c,x,lane}=item;
@@ -111,8 +111,8 @@ for(const item of plan.items){
  else{const bottom=FIRST_BOTTOM+lane*STEP;scoreY=height-bottom-7;imageTop=scoreY-112;ctx.moveTo(x,scoreY+5);ctx.lineTo(x,height-AXIS_BOTTOM-5);}
  if(showGuides())ctx.stroke();ctx.setLineDash([]);
  if(c.image){const img=new Image();img.src=c.image;try{await img.decode();const ratio=Math.min(94/img.naturalWidth,94/img.naturalHeight);const w=img.naturalWidth*ratio,h=img.naturalHeight*ratio;ctx.drawImage(img,x-w/2,imageTop+(94-h)/2,w,h);}catch(e){}}
- ctx.fillStyle='#555';if(c.name){ctx.font='300 13px "Helvetica Neue",Arial,sans-serif';ctx.fillText(c.name,x,vertical?item.y+43:scoreY-13,104);}
- ctx.fillStyle='#888';ctx.font='300 12px "Helvetica Neue",Arial,sans-serif';ctx.fillText(Number(c.score).toFixed(2),x,vertical?item.y+59:scoreY+5);
+ ctx.fillStyle='#111';if(c.name){ctx.font='13px Arial,sans-serif';ctx.fillText(c.name,x,vertical?item.y+43:scoreY-13,104);}
+ ctx.fillStyle='#222';ctx.font='12px Arial,sans-serif';ctx.fillText(Number(c.score).toFixed(2),x,vertical?item.y+59:scoreY+5);
 }
 // Small creator credit in the top-right corner of exported PNG only.
 ctx.save();
