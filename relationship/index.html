@@ -67,7 +67,7 @@ function layout(kind){
  }
  snapshot();
  if(n>18){arrangeLargeGroup();}
- else ns.forEach((p,i)=>{const a=-Math.PI/2+2*Math.PI*i/n;const r=n===3?245:n===4?Math.min(W/2-95,H/2-95):385;p.x=cx+r*Math.cos(a);p.y=cy+(n===3?205:n===4?r:H/2-85)*Math.sin(a);});
+ else ns.forEach((p,i)=>{const a=(n===4?-3*Math.PI/4:-Math.PI/2)+2*Math.PI*i/n;const r=n===3?245:n===4?Math.min(W/2-95,H/2-95):385;p.x=cx+r*Math.cos(a);p.y=cy+(n===3?205:n===4?r:H/2-85)*Math.sin(a);});
  commit();
 }
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
@@ -179,7 +179,7 @@ function drag(el,onMove,nodeDrag=false,onTap=null,onDrop=null){
   window.addEventListener('pointercancel',end);
  });
 }
-function add(){if(state.nodes.length>=65){alert('最多添加 65 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();W=canvasSize();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length===4){const cx=W/2,cy=newH/2,r=Math.min(W/2-95,newH/2-95);state.nodes.forEach((node,j)=>{const a=-Math.PI/2+2*Math.PI*j/4;node.x=cx+r*Math.cos(a);node.y=cy+r*Math.sin(a);});}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();if(state.nodes.length>=10)requestAnimationFrame(centerCanvas);}
+function add(){if(state.nodes.length>=65){alert('最多添加 65 位角色。');return;}snapshot();const i=state.nodes.length,a=-Math.PI/2+i*2*Math.PI/Math.max(3,i+1);const oldH=canvasH();const p={id:uid(),name:'角色 '+(i+1),x:500+350*Math.cos(a),y:oldH/2+(oldH/2-110)*Math.sin(a),image:''};state.nodes.push(p);const newH=canvasH();W=canvasSize();if(state.nodes.length>=10){arrangeLargeGroup();}else if(newH!==oldH){for(const node of state.nodes)node.y=clamp(node.y*newH/oldH,65,newH-65);}if(state.nodes.length===4){const cx=W/2,cy=newH/2,r=Math.min(W/2-95,newH/2-95);state.nodes.forEach((node,j)=>{const a=-3*Math.PI/4+2*Math.PI*j/4;node.x=cx+r*Math.cos(a);node.y=cy+r*Math.sin(a);});}if(state.nodes.length<=5)addMissingPairs();selectedNode=p.id;selectedEdge=null;commit();if(state.nodes.length>=10)requestAnimationFrame(centerCanvas);}
 $('add').onclick=add;$('fillEdges').onclick=()=>{const missing=state.nodes.length*(state.nodes.length-1)-state.edges.length;if(missing<=0){alert('所有双向箭头都已经存在。');return;}snapshot();addMissingPairs();commit();};$('clearEdges').onclick=()=>{if(!state.edges.length)return;if(!confirm('确定删除图上所有箭头和关系文字吗？角色和头像会保留。'))return;snapshot();state.edges=[];selectedEdge=null;pending=null;mode='move';commit();};$('move').onclick=()=>{mode='move';pending=null;render();};$('connect').onclick=()=>{mode='connect';pending=null;render();};$('ring').onclick=()=>layout('ring');$('star').onclick=()=>layout('star');
 $('starHelp').onclick=()=>{const panel=$('starHelpText');const show=panel.classList.contains('hidden');panel.classList.toggle('hidden',!show);$('starHelp').setAttribute('aria-expanded',String(show));};
 $('nodeName').oninput=()=>{const n=nodeBy(selectedNode);if(n){n.name=$('nodeName').value;persist();const el=[...$('nodes').children].find(x=>x.classList.contains('selected'));if(el){el.querySelector('.nm').textContent=n.name;if(!n.image)el.querySelector('.avatar').textContent=n.name.slice(0,1);}}};
