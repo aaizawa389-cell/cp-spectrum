@@ -5,7 +5,7 @@
 <div id="starHelpText" class="hidden" role="status" style="margin:2px 0 8px;padding:10px 12px;border:1px solid #ead4dc;border-radius:9px;background:#fff9fb;color:#6e5965;font-size:12px;line-height:1.65">中心最多可放置 <strong>8 位角色</strong>。再次点击「中心辐射」，或将外围角色拖入中心并松开，即可增加中心角色。系统会自动整理中心人物，并均匀排列外围角色。</div>
 <div class="bar"><button id="batchImages">批量导入头像</button><input type="file" id="batchImageFiles" accept="image/*" multiple style="display:none"><button id="save">保存项目</button><button id="load">导入项目</button><input type="file" id="fileImport" accept=".json,application/json"><button id="png">导出 PNG</button><button id="reset">清空画布</button></div>
 <div class="bar"><span class="history-buttons"><button id="undo" title="撤销" aria-label="撤销">↶</button><button id="redo" title="重做" aria-label="重做">↷</button></span></div>
-<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option><option value="plain">普通连线（无箭头）</option></select></label><label>长度 <input id="edgeLength" type="range" min="40" max="140" step="5" value="100" aria-label="关系线长度"><output id="edgeLengthValue">100%</output></label><button id="reverse">反向复制</button><button id="deleteEdge">删除箭头</button></div>
+<div id="edgePanel" class="panel hidden"><span class="pill" id="edgeTitle">箭头设置</span><label>颜色 <input id="color" type="color" value="#222222"></label><label>线型 <select id="dash"><option value="solid">实线</option><option value="dash">虚线</option><option value="plain">普通连线（无箭头）</option></select></label><label>长度 <input id="edgeLength" type="range" min="20" max="140" step="5" value="100" aria-label="关系线长度"><output id="edgeLengthValue">100%</output></label><button id="reverse">反向复制</button><button id="deleteEdge">删除箭头</button></div>
 <div id="nodePanel" class="panel hidden"><span class="pill" id="nodeTitle"></span><label>名字 <input id="nodeName" type="text" maxlength="40"></label><label>照片 <input id="nodeImage" type="file" accept="image/*"></label><button id="deleteNode">删除角色</button></div>
 <div class="wrap" id="viewport"><div class="board" id="board"><svg class="edges" id="svg" viewBox="0 0 1000 720" preserveAspectRatio="none"></svg><div id="nodes"></div><div id="notes"></div><div id="handles"></div></div></div>
 <div class="help">3–5 人自动生成双向黑色箭头；第 6 人起新增角色不再自动连线，可使用手动连线。点击头像直接上传照片；点击角色名字可修改名称。点击箭头旁的文字填写感情，不需要的箭头可选中删除。</div><div class="help" style="margin-top:16px"><strong>保存项目，方便下次继续编辑 ♡</strong><p style="margin:7px 0 0">如果角色较多，或之后还想调整关系，除了导出 PNG 图片，也可以点击「保存项目」备份当前内容。下次使用时选择「导入项目」，就能继续修改，不必从头制作。</p></div><footer>制表人：aizawa · 本工具不会上传你的角色照片</footer></main><div id="preview" class="hidden"><button id="closePreview">关闭预览 ×</button><p>长按图片即可保存到照片（iPhone / iPad）</p><img id="previewImg" alt="导出的关系图"></div>
@@ -79,7 +79,7 @@ function equalizeFourEdges(){
  const inset=Math.sqrt(40*40-11*11)+34;
  const shortest=Math.min(...lengths);
  const target=Math.max(16,shortest-2*inset);
- for(const e of state.edges){const a=ns.find(n=>n.id===e.from),b=ns.find(n=>n.id===e.to);if(!a||!b)continue;const len=Math.hypot(a.x-b.x,a.y-b.y);const base=Math.max(1,len-2*inset);e.lengthPct=Math.max(40,Math.min(140,Math.round(target/base*100)));}
+ for(const e of state.edges){const a=ns.find(n=>n.id===e.from),b=ns.find(n=>n.id===e.to);if(!a||!b)continue;const len=Math.hypot(a.x-b.x,a.y-b.y);const base=Math.max(1,len-2*inset);e.lengthPct=Math.max(20,Math.min(140,Math.round(target/base*100)));}
 }
 function geom(e){const a=nodeBy(e.from),b=nodeBy(e.to);if(!a||!b)return null;const ax=a.x,ay=a.y-10,bx=b.x,by=b.y-10;const dx=bx-ax,dy=by-ay,len=Math.max(1,Math.hypot(dx,dy)),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
 const reverse=state.edges.find(t=>t.from===e.to&&t.to===e.from);
@@ -89,7 +89,7 @@ const offset=0;
  const side=reverse?11:0;
  const radius=40,clearance=34;
  const inset=Math.sqrt(radius*radius-side*side)+clearance;
- const lengthPct=clamp(Number(e.lengthPct)||100,40,140)/100;
+ const lengthPct=clamp(Number(e.lengthPct)||100,20,140)/100;
  const baseSpan=Math.max(0,len-2*inset);
  const desiredSpan=Math.max(16,Math.min(len-2*(radius+5),baseSpan*lengthPct));
  const edgeInset=Math.max(radius+5,(len-desiredSpan)/2);
